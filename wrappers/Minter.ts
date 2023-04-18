@@ -8,7 +8,7 @@ export type MinterConfig = {
 };
 
 export function minterConfigToCell(config: MinterConfig): Cell {
-    return beginCell().storeCoins(config.totalSupply).storeAddress(config.adminAddress).storeRef(config.content).storeRef(config.jettonWalletCode).endCell();
+    return beginCell().storeCoins(config.totalSupply).storeAddress(config.adminAddress).storeRef(config.content).storeRef(config.jettonWalletCode).storeDict().endCell();
 }
 
 export class Minter implements Contract {

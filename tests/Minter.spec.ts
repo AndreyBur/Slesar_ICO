@@ -21,7 +21,8 @@ describe('Minter', () => {
 
     beforeEach(async () => {
         blockchain = await Blockchain.create();
-
+        blockchain.now = 1681384077
+        
         deployer = await blockchain.treasury('deployer');
         wallet = await blockchain.treasury('wallet');
 
@@ -32,7 +33,7 @@ describe('Minter', () => {
             jettonWalletCode: codeWallet
         }, code));
 
-        const deployResult = await minter.sendDeploy(deployer.getSender(), toNano('0.05'));
+        const deployResult = await minter.sendDeploy(deployer.getSender(), toNano('1'));
 
         expect(deployResult.transactions).toHaveTransaction({
             from: deployer.address,
@@ -50,12 +51,41 @@ describe('Minter', () => {
 
         const balance = await jetonWallet.getBalance();
 
-        expect(balance).toBeGreaterThan(toNano('9990'));
-        expect(balance).toBeLessThanOrEqual(toNano('10000'));
+        expect(balance).toBeGreaterThan(toNano('8200'));
+        expect(balance).toBeLessThanOrEqual(toNano('8334'));
+    });
+
+    it('should buy max jettons', async () => {
+        blockchain.now = 1682075277;
+
+        let paymentResult = await minter.sendPayment(wallet.getSender(), toNano('500'));
+        
+        let jetonWallet = blockchain.openContract(Wallet.createFromAddress(await minter.getWalletAddress(wallet.address)));
+
+        const balance = await jetonWallet.getBalance();
+
+        expect(balance).toBeGreaterThan(toNano('99900'));
+        expect(balance).toBeLessThanOrEqual(toNano('100000'));
+
+        if (paymentResult.events[3].type == 'message_sent'){
+            expect(paymentResult.events[3].value).toBeGreaterThan(toNano('299'));
+            expect(paymentResult.events[3].value).toBeLessThanOrEqual(toNano('300'));
+        }
+        if (paymentResult.events[4].type == 'message_sent'){
+            expect(paymentResult.events[4].value).toBeGreaterThan(toNano('199'));
+            expect(paymentResult.events[4].value).toBeLessThanOrEqual(toNano('200'));
+        }
+
+        paymentResult = await minter.sendPayment(wallet.getSender(), toNano('500'));
+        
+        if (paymentResult.events[3].type == 'message_sent'){
+            expect(paymentResult.events[3].value).toBeGreaterThan(toNano('499'));
+            expect(paymentResult.events[3].value).toBeLessThanOrEqual(toNano('500'));
+        }
+        
     });
 
     it('should not buy jettons before start of sale and after end of sale', async () => {
-        blockchain.now = Math.floor(Date.now() / 1000)
 
         let paymentResult = await minter.sendPayment(wallet.getSender(), toNano('25'));
 
