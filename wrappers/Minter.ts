@@ -1,4 +1,14 @@
-import { Address, beginCell, Cell, Contract, contractAddress, ContractProvider, Sender, SendMode, TupleItem} from 'ton-core';
+import {
+    Address,
+    beginCell,
+    Cell,
+    Contract,
+    contractAddress,
+    ContractProvider,
+    Sender,
+    SendMode,
+    TupleItem,
+} from 'ton-core';
 
 export type MinterConfig = {
     totalSupply: bigint;
@@ -8,7 +18,13 @@ export type MinterConfig = {
 };
 
 export function minterConfigToCell(config: MinterConfig): Cell {
-    return beginCell().storeCoins(config.totalSupply).storeAddress(config.adminAddress).storeRef(config.content).storeRef(config.jettonWalletCode).storeDict().endCell();
+    return beginCell()
+        .storeCoins(config.totalSupply)
+        .storeAddress(config.adminAddress)
+        .storeRef(config.content)
+        .storeRef(config.jettonWalletCode)
+        .storeDict()
+        .endCell();
 }
 
 export class Minter implements Contract {
@@ -39,9 +55,11 @@ export class Minter implements Contract {
             body: beginCell().endCell(),
         });
     }
-    async getWalletAddress(provider: ContractProvider, address: Address): Promise<Address>{
-        return (await provider.get('get_wallet_address', [{type:"slice", cell: beginCell().storeAddress(address).endCell()}])).stack.readAddress();
+    async getWalletAddress(provider: ContractProvider, address: Address): Promise<Address> {
+        return (
+            await provider.get('get_wallet_address', [
+                { type: 'slice', cell: beginCell().storeAddress(address).endCell() },
+            ])
+        ).stack.readAddress();
     }
-
-
 }
